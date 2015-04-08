@@ -9,10 +9,13 @@
   rs.setUserPswd(rs_pswd);
   rs.setRsAccount(rs_acct);
 
-  console.log('Authenticating with RS');
-  rs.authenticate();
+  rs.doAuth();
 
-  console.log(rs);
+  function checkAuthStatus() {
+    if (rs.getAuthStatus() === true) { alert ('You are authenticated!'); }
+    else { alert('You are *NOT* authenticated'); }
+  }
+
   </script>
 </head>
 <body>
@@ -23,6 +26,8 @@
 <p>API Version: <script>document.write(rs.configs['api_version']);</script></p>
 <p>API Endpoint URL: <script>document.write(rs.configs['api_endpoint']);</script></p>
 <p>User Account/Email: <script>document.write(rs.getUserEmail());</script></p>
+<p>RightScale Account: <script>document.write(rs.getRsAccount());</script></p>
+<p>Authentication Status: <button onClick='checkAuthStatus()'>Check Status</script></p>
 
 </body>
 </html>

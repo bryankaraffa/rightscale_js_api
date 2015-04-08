@@ -10,6 +10,7 @@ function RightScaleAPI() {
   var user_email;
   var user_pswd;
   var rs_acct;
+  var isAuthenticated = false;
 
 
   // Initialization
@@ -22,7 +23,7 @@ function RightScaleAPI() {
       xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
   }
   //// Username and password
-  console.log('RightScale API Initialized.');
+  console.log('[RS] RightScale JavaScript API Initialized');
 
 
   // User Email
@@ -32,6 +33,7 @@ function RightScaleAPI() {
   this.getUserEmail=getUserEmail;
 
   function setUserEmail(input) {
+    isAuthenticated=false;
     user_email=input;
     return true;
   }
@@ -45,6 +47,7 @@ function RightScaleAPI() {
   this.getUserPswd=getUserPswd;
 
   function setUserPswd(input) {
+    isAuthenticated=false;
     user_pswd=input;
     return true;
   }
@@ -57,35 +60,52 @@ function RightScaleAPI() {
   this.getRsAccount=getRsAccount;
 
   function setRsAccount(input) {
+    isAuthenticated=false;
     rs_acct=input;
     return true;
   }
   this.setRsAccount=setRsAccount;
 
   // HTTP
-  function send(method, url, params) {
-    console.log ('Method: '+ method + ' | URL: '+ url + ' | Params:'+ params);
-    xmlhttp.open(method,this.configs['api_endpoint']+url,false); // false == synchronous request (depreciated)
+  function send(method, url, params, callback) {
+    //console.log ('Method: '+ method + ' | URL: '+ url + ' | Params:'+ params);
+    xmlhttp.open(method,this.configs['api_endpoint']+url,true); // true == asynchronous (synchronous depreciated)
     xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-    //xmlhttp.setRequestHeader("Content-length", params.length);
-    xmlhttp.setRequestHeader("X_API_VERSION", 1.5);
+    xmlhttp.setRequestHeader("X_API_VERSION", this.configs['api_version']);
+    if (typeof callback === 'function') {
+      xmlhttp.onreadystatechange=callback;
+    }
     xmlhttp.send(params);
-    return(xmlhttp);
+    return true;
   }
   this.send=send;
 
   // Authenticate
   function authenticate() {
-    account_href='/api/accounts/7954';
-    params = new Array();
-    params['account_href']=account_href;
-    r=this.send('POST', '/api/sessions', 'account_href=/api/accounts/7954&email='+this.getUserEmail()+'&password='+this.getUserPswd());
-    console.log(r); // Debugging
-    if (r.status === 204) {
-      console.log('[RS] Authentication successful!')
-    }
+    isAuthenticated=false;
+    params='account_href=/api/accounts/'+this.getRsAccount()+'&email='+this.getUserEmail()+'&password='+this.getUserPswd();
+    return this.send('POST', '/api/sessions', params, handleAuthResponse);
   }
   this.authenticate=authenticate;
+  this.doAuth=authenticate;
 
+  function handleAuthResponse() {
+    if(xmlhttp.readyState == 4 && xmlhttp.status == 204) {
+      console.log('[RS] Authentication successful!');
+      isAuthenticated=true;
+    }
+    else {
+      if (xmlhttp.status >= 400) {
+        console.log('[RS] Error authenticating! Response: '+xmlhttp.status+' '+xmlhttp.statusText+' '+xmlhttp.responseText);
+        isAuthenticated=false;
+      }
+    }
+  }
+
+  function getAuthStatus() {
+    return isAuthenticated;
+  }
+  this.getAuthStatus=getAuthStatus;
 
 }
+var pub;
