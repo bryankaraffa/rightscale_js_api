@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="credentials.js"></script>
+  <script src="rightscale.js"></script>
+  <script>
+  var rs = new RightScaleAPI();
+  rs.setUserEmail(rs_email);
+  rs.setUserPswd(rs_pswd);
+  rs.setRsAccount(rs_acct);
+
+  console.log('Authenticating with RS');
+  rs.authenticate();
+
+  console.log(rs);
+  </script>
+</head>
+<body>
+
+<h1>RightScale JavaScript API Examples</h1>
+
+<h2>Environment</h2>
+<p>API Version: <script>document.write(rs.configs['api_version']);</script></p>
+<p>API Endpoint URL: <script>document.write(rs.configs['api_endpoint']);</script></p>
+<p>User Account/Email: <script>document.write(rs.getUserEmail());</script></p>
+
+</body>
+</html>
