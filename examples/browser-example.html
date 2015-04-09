@@ -3,6 +3,16 @@
 <head>
   <script src="credentials.js"></script>
   <script src="../rightscale.js"></script>
+  <style>
+  .deployment {
+    float: left;
+    display:inline;
+    border:1px black;
+    padding:10px;
+    font-style:italic;
+    color:rgb(0,155,255);
+  }
+  </style>
 </head>
 <body>
 
@@ -17,7 +27,7 @@
 
 <h2>Resources</h2>
 <h3>Deployments</h3>
-<p id='showDeployments'></p>
+<p id='deploymentList'></p>
 
 
 
@@ -26,13 +36,36 @@
 function insertHtml(target,content) {
   return document.getElementById(target).innerHTML=content;
 }
-function showAuthStatus() {
-  console.log('Updating Authentication Status');
+
+// monitorAuthStatus()
+// Called every X-interval. When authenticated, begin the rest of the script.
+function waitforAuthentication() {
   if (rs.getAuthStatus() === true) {
     insertHtml("authStatus","<font color='green'>YES</font>");
     clearInterval(monitorAuth);
+
+    console.log('Initializing examples...');
+
+    // Get and display the deployments for an account
+    rs.getDeployments();
+    var monitorDeployments=setInterval(function() {
+      var deployments = rs.showDeployments();
+      if (typeof deployments === "object") {
+        var output = [];
+        clearInterval(monitorDeployments);
+        for (index in deployments) {
+          var deployment=deployments[index];
+          output+='<div class="deployment">'+deployment['name']+'</div>';
+        }
+        insertHtml('deploymentList',output);
+      }
+      else {
+        console.log('Waiting for deployments to be returned');
+      }
+    },500);
+
+
   }
-  else { document.getElementById("authStatus").innerHTML="<font color='red'>NO</b>"; }
 }
 //// END Helper functions
 
@@ -54,11 +87,8 @@ insertHtml('rs_acct',rs.getRsAccount());
 
 rs.doAuth();
 
-var monitorAuth=setInterval(showAuthStatus, 500);
+var monitorAuth=setInterval(waitforAuthentication, 500);
 
-while (rs.getAuthStatus()) {
-  
-}
 
 
 </script>
