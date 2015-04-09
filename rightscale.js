@@ -13,6 +13,7 @@ function RightScaleAPI() {
   var rs_acct;
   var isAuthenticated = false;
   var lastResponse;
+  var resources = [];
 
 
   // Initialization
@@ -72,7 +73,7 @@ function RightScaleAPI() {
   function send(method, url, params, callback) {
     lastResponse = undefined;
     //console.log ('Method: '+ method + ' | URL: '+ url + ' | Params:'+ params);
-    xmlhttp.open(method,this.configs['api_endpoint']+url,false); // true == asynchronous (synchronous depreciated)
+    xmlhttp.open(method,this.configs['api_endpoint']+url,true); // true == asynchronous (synchronous depreciated)
     xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     xmlhttp.setRequestHeader("X_API_VERSION", this.configs['api_version']);
     if (typeof callback === 'function') {
@@ -104,13 +105,13 @@ function RightScaleAPI() {
   this.doAuth=authenticate;
 
   function handleAuthResponse() {
-    if(xmlhttp.readyState == 4 && xmlhttp.status == 204) {
+    if(this.readyState == 4 && this.status == 204) {
       console.log('[RS] Authentication successful!');
       isAuthenticated=true;
     }
     else {
-      if (xmlhttp.status >= 400) {
-        console.log('[RS] Error authenticating! Response: '+xmlhttp.status+' '+xmlhttp.statusText+' '+xmlhttp.responseText);
+      if (this.status >= 400) {
+        console.log('[RS] Error authenticating! Response: '+this.status+' '+this.statusText+' '+this.responseText);
         isAuthenticated=false;
       }
     }
@@ -123,19 +124,30 @@ function RightScaleAPI() {
 
   // Deployments
   function getDeployments() {
+      resources['deployments'] = undefined;
       console.log('[RS] Getting Deployments');
-      if (this.send('GET', '/api/deployments', undefined, handleDeploymentResponse)) {
-        console.log(xmlhttp.responseText);
-      }
+      this.send('GET', '/api/deployments', undefined, handleDeploymentResponse);
+      return true;
   }
   this.getDeployments=getDeployments;
 
   function handleDeploymentResponse() {
-    if(xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+    if(this.readyState == 4 && this.status == 200) {
       console.log('[RS] Deployments received');
+      resources['deployments'] = JSON.parse(this.response);
       return true;
     }
+    else if (this.readyState == 4) {
+      console.log('[RS] ERROR: Deployments not received');
+    }
   }
+
+  function showDeployments() {
+    if (typeof resources['deployments'] !== undefined) {
+      return resources['deployments'];
+    }
+  }
+  this.showDeployments=showDeployments;
 
 
 }

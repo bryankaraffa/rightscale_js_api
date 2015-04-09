@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="credentials.js"></script>
+  <script src="../rightscale.js"></script>
+</head>
+<body>
+
+<h1>RightScale JavaScript API Examples</h1>
+
+<h2>Environment</h2>
+<p>API Version: <span id='api_version'></span></p>
+<p>API Endpoint URL: <span id='api_endpoint'></span></p>
+<p>User Account/Email: <span id='rs_email'></span></p>
+<p>RightScale Account: <span id='rs_acct'></span></p>
+<p>Authenticated: <span id='authStatus'></span> <button onClick='showAuthStatus()'>Update Status</button></p>
+
+<h2>Resources</h2>
+<h3>Deployments</h3>
+<p id='showDeployments'></p>
+
+
+
+<script>
+// Helper functions for example.  Not used/required by the RightScale JS API.
+function insertHtml(target,content) {
+  return document.getElementById(target).innerHTML=content;
+}
+function showAuthStatus() {
+  console.log('Updating Authentication Status');
+  if (rs.getAuthStatus() === true) {
+    insertHtml("authStatus","<font color='green'>YES</font>");
+    clearInterval(monitorAuth);
+  }
+  else { document.getElementById("authStatus").innerHTML="<font color='red'>NO</b>"; }
+}
+//// END Helper functions
+
+
+// Initialization
+var rs = new RightScaleAPI();
+
+insertHtml('api_version',rs.configs['api_version']);
+insertHtml('api_endpoint',rs.configs['api_endpoint']);
+
+// `rs_email`, `rs_pswd`, and `rs_acct` are stored in credentials.js
+// credentials.sample.js is provided as an example.
+// You could also retrieve these values from a form/document element as well.
+rs.setUserEmail(rs_email);
+rs.setUserPswd(rs_pswd);
+rs.setRsAccount(rs_acct);
+insertHtml('rs_email',rs.getUserEmail());
+insertHtml('rs_acct',rs.getRsAccount());
+
+rs.doAuth();
+
+var monitorAuth=setInterval(showAuthStatus, 500);
+
+while (rs.getAuthStatus()) {
+  
+}
+
+
+</script>
+
+
+</body>
+</html>
