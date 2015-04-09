@@ -4,6 +4,7 @@ function RightScaleAPI() {
   this.configs = [];
   this.configs['api_version']   = '1.5';
   this.configs['api_endpoint']  = 'https://my.rightscale.com';
+  this.deployments = '';
 
   // Private Variables
   var xmlhttp;
@@ -11,6 +12,7 @@ function RightScaleAPI() {
   var user_pswd;
   var rs_acct;
   var isAuthenticated = false;
+  var lastResponse;
 
 
   // Initialization
@@ -68,8 +70,9 @@ function RightScaleAPI() {
 
   // HTTP
   function send(method, url, params, callback) {
+    lastResponse = undefined;
     //console.log ('Method: '+ method + ' | URL: '+ url + ' | Params:'+ params);
-    xmlhttp.open(method,this.configs['api_endpoint']+url,true); // true == asynchronous (synchronous depreciated)
+    xmlhttp.open(method,this.configs['api_endpoint']+url,false); // true == asynchronous (synchronous depreciated)
     xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     xmlhttp.setRequestHeader("X_API_VERSION", this.configs['api_version']);
     if (typeof callback === 'function') {
@@ -80,11 +83,22 @@ function RightScaleAPI() {
   }
   this.send=send;
 
+  function handleSendResponse(callback) {
+    if(xmlhttp.readyState == 4) {
+      lastResponse = xmlhttp;
+      return true;
+    }
+    else {
+      return false;
+    }
+  }
+  this.handleSendResponse=handleSendResponse;
+
   // Authenticate
   function authenticate() {
     isAuthenticated=false;
     params='account_href=/api/accounts/'+this.getRsAccount()+'&email='+this.getUserEmail()+'&password='+this.getUserPswd();
-    return this.send('POST', '/api/sessions', params, handleAuthResponse);
+    this.send('POST', '/api/sessions', params, handleAuthResponse);
   }
   this.authenticate=authenticate;
   this.doAuth=authenticate;
@@ -106,6 +120,23 @@ function RightScaleAPI() {
     return isAuthenticated;
   }
   this.getAuthStatus=getAuthStatus;
+
+  // Deployments
+  function getDeployments() {
+      console.log('[RS] Getting Deployments');
+      if (this.send('GET', '/api/deployments', undefined, handleDeploymentResponse)) {
+        console.log(xmlhttp.responseText);
+      }
+  }
+  this.getDeployments=getDeployments;
+
+  function handleDeploymentResponse() {
+    if(xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+      console.log('[RS] Deployments received');
+      return true;
+    }
+  }
+
 
 }
 var pub;
