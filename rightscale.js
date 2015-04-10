@@ -18,13 +18,20 @@ function RightScaleAPI() {
 
   // Initialization
   //// XMLHttpRequest Object
-  if (window.XMLHttpRequest) {
-      // code for IE7+, Firefox, Chrome, Opera, Safari
-      xmlhttp=new XMLHttpRequest();
-  } else {
-      // code for IE6, IE5
-      xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+  if (typeof window !== 'undefined') { // Check if being used in browser
+    if (typeof window.XMLHttpRequest !== 'undefined') {
+        // code for IE7+, Firefox, Chrome, Opera, Safari
+        xmlhttp=new XMLHttpRequest();
+    } else if (typeof window.ActiveXObject !== 'undefined') {
+        // code for IE6, IE5
+        xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+    }
   }
+  else {
+    console.log('[RS] RightScale JS API is not being loaded in a browser.');
+  }
+
+
   //// Username and password
   console.log('[RS] RightScale JavaScript API Initialized');
 
@@ -148,7 +155,8 @@ function RightScaleAPI() {
     }
   }
   this.showDeployments=showDeployments;
-
-
 }
-var pub;
+
+if (typeof window === 'undefined') { // Check if being used in browser
+  module.exports={ RightScaleAPI:new RightScaleAPI() }
+}
